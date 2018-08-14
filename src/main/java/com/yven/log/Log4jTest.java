@@ -4,7 +4,6 @@ package com.yven.log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.CountDownLatch;
 
 /**
  * @author yven
@@ -15,29 +14,74 @@ public class Log4jTest {
     private static Logger log = LoggerFactory.getLogger(Log4jTest.class);
 
     public static void main(String[] args) throws InterruptedException {
-        int messageSize = 1000000;
-        int threadSize = 50;
-        final int everySize = messageSize / threadSize;
 
-        final CountDownLatch cdl = new CountDownLatch(threadSize);
-        long startTime = System.currentTimeMillis();
-        for (int ts = 0; ts < threadSize; ts++) {
-            new Thread(new Runnable() {
+        Log4jTest test = new Log4jTest();
+        test.runThread();
+    }
 
-                @Override
-                public void run() {
-                    for (int es = 0; es < everySize; es++) {
-                        log.info("======info");
-                    }
-                    cdl.countDown();
-                }
-            }).start();
+    public void runThread(){
+        for (int i = 0; i < 500; i++) {
+            new Thread(new ThreadA()).start();
+            new Thread(new ThreadB()).start();
+            new Thread(new ThreadC()).start();
+            new Thread(new ThreadD()).start();
         }
+    }
 
-        cdl.await();
-        long endTime = System.currentTimeMillis();
-        System.out.println("log4j1:messageSize = " + messageSize
-                + ",threadSize = " + threadSize + ",costTime = "
-                + (endTime - startTime) + "ms");
+
+    class ThreadA implements Runnable{
+        @Override
+        public void run() {
+            while(true){
+                log.error(Thread.currentThread().getName());
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+    class ThreadB implements Runnable{
+        @Override
+        public void run() {
+            while(true){
+                log.warn(Thread.currentThread().getName());
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+    class ThreadC implements Runnable{
+        @Override
+        public void run() {
+            while (true) {
+                for (int i = 1000; i < 9999; i++) {
+                    log.info("info from=\"" + i + "\" to=\"" + (i + 5) + "\"");
+                }
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        }
+    }
+    class ThreadD implements Runnable{
+        @Override
+        public void run() {
+            while(true){
+                log.debug(Thread.currentThread().getName());
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }        }
     }
 }
+

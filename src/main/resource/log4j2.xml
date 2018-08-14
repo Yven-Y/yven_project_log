@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--设置log4j2的自身log级别为warn -->
-<configuration status="warn">
+<!--设置log4j2的自身log级别为warn  配置自动重新加载 -->
+<configuration status="off" monitorInterval="600" packages="com.yven.log.filter">
 
     <appenders>
         <console name="Console" target="SYSTEM_OUT">
@@ -11,11 +11,13 @@
         <RollingFile name="RollingFileInfo" fileName="./logs/log4j2/info.log"
                      filePattern="${sys:user.home}/logs/hpaasvc/$${date:yyyy-MM}/info-%d{yyyy-MM-dd}-%i.log">
             <Filters>
-                <ThresholdFilter level="info" onMatch="DENY" onMismatch="NEUTRAL" />
-                <ThresholdFilter level="WARN" onMatch="DENY" onMismatch="NEUTRAL" />
-                <!--<RegexFilter regex=".* log .*" onMatch="NEUTRAL" onMismatch="DENY"/>-->
+                <!--<MyRegexFilter  regex=".*99.*" onMatch="accept" onMismatch="NEUTRAL"/>-->
+                <!--<RegexFilter regex=".*index=1.*" onMatch="accept" onMismatch="NEUTRAL"/>-->
+                <MyRegexFilter  onMatch="accept" onMismatch="NEUTRAL"/>
+                <ThresholdFilter level="WARN" onMatch="accept" onMismatch="NEUTRAL" />
+                <ThresholdFilter level="ERROR" onMatch="accept" onMismatch="deny" />
             </Filters>
-            <PatternLayout pattern="[%t] - %m%n" />
+            <PatternLayout pattern="[%d{HH:mm:ss:SSS}] [%p] - %l - %m%n" />
             <Policies>
                 <TimeBasedTriggeringPolicy />
                 <SizeBasedTriggeringPolicy size="100 MB" />
@@ -32,12 +34,14 @@
     </appenders>
 
     <loggers>
-        <!-- <AsyncLogger name="asynLogger" level="trace"
+         <AsyncLogger name="asynLogger" level="trace"
             includeLocation="true">
             <AppenderRef ref="RandomAccessFile" />
-        </AsyncLogger> -->
+        </AsyncLogger>
         <Root level="info" includeLocation="true">
             <AppenderRef ref="RollingFileInfo" />
+            <AppenderRef ref="Console" />
+            <!--<AppenderRef ref="asynLogger" />-->
         </Root>
     </loggers>
 
