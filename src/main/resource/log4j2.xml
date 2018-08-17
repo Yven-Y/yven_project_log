@@ -1,48 +1,68 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--设置log4j2的自身log级别为warn  配置自动重新加载 -->
-<configuration status="off" monitorInterval="600" packages="com.yven.log.filter">
+<!--status是log4j2的自身log级别，  monitorInterval配置自动重新加载 ， 当配置了自定义的filter时需要指定packages-->
+<Configuration status="warn" monitorInterval="600" packages="com.yven.log.filter">
 
-    <appenders>
-        <console name="Console" target="SYSTEM_OUT">
+    <!-- 定义变量或属性-->
+    <Properties>
+        <Property name="LOG_HOME">./logs</Property>
+        <Property name="ERROR_LOG_FCILE_NAME">${LOG_HOME}/error</Property>
+        <Property name="WARN_LOG_FILE_NAME">${LOG_HOME}/warn</Property>
+        <Property name="INFO_LOG_FILE_NAME">${LOG_HOME}/info</Property>
+        <Property name="DEBUG_LOG_FILE_NAME">${LOG_HOME}/debug</Property>
+        <Property name="TEST_LOG_FILE_NAME">${LOG_HOME}/test</Property>
+    </Properties>
+
+    <Appenders>
+        <!-- 输出到控制台-->
+        <Console name="Console" target="SYSTEM_OUT">
+            <!--使用过滤器控制输出的level级别，可以配置多个过滤器-->
+            <!--<ThresholdFilter level="INFO" onMatch="ACCEPT" />-->
+            <!--输出的格式-->
             <PatternLayout pattern="[%d{HH:mm:ss:SSS}] [%p] - %l - %m%n" />
-        </console>
-        <!--filePattern="">-->
+        </Console>
 
-        <RollingFile name="RollingFileInfo" fileName="./logs/log4j2/info.log"
-                     filePattern="${sys:user.home}/logs/hpaasvc/$${date:yyyy-MM}/info-%d{yyyy-MM-dd}-%i.log">
+        <!--输出到具体的文件-->
+        <RollingFile name="RollingFileInfo" fileName="${LOG_HOME}/info.log"
+                     filePattern="${LOG_HOME}/$${date:yyyy-MM}/info-%d{yyyy-MM-dd}-%i.log">
+            <!--过滤器配置-->
             <Filters>
-                <!--<MyRegexFilter  regex=".*99.*" onMatch="accept" onMismatch="NEUTRAL"/>-->
-                <!--<RegexFilter regex=".*index=1.*" onMatch="accept" onMismatch="NEUTRAL"/>-->
-                <MyRegexFilter  onMatch="accept" onMismatch="NEUTRAL"/>
-                <ThresholdFilter level="WARN" onMatch="accept" onMismatch="NEUTRAL" />
-                <ThresholdFilter level="ERROR" onMatch="accept" onMismatch="deny" />
+                <MyRegexFilter  onMatch="ACCEPT" onMismatch="NEUTRAL"/>
+                <ThresholdFilter level="WARN" onMatch="ACCEPT" onMismatch="NEUTRAL" />
+                <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY" />
             </Filters>
             <PatternLayout pattern="[%d{HH:mm:ss:SSS}] [%p] - %l - %m%n" />
+            <!--日志生成策略-->
             <Policies>
-                <TimeBasedTriggeringPolicy />
-                <SizeBasedTriggeringPolicy size="100 MB" />
+                <!--每天生成一个日志文件-->
+                <TimeBasedTriggeringPolicy  modulate="true" interval="1"/>
+                <!--超过1024MG,重新生成一个日志文件-->
+                <SizeBasedTriggeringPolicy size="1024 MB" />
             </Policies>
         </RollingFile>
 
-        <RandomAccessFile name="RandomAccessFile" fileName="./logs/log4j2/asyncWithLocation.log"
-                          immediateFlush="false" append="true">
-            <PatternLayout>
-                <Pattern>[%t] - %m%n</Pattern>
-            </PatternLayout>
-        </RandomAccessFile>
+        <RollingFile name="testLog" fileName="${TEST_LOG_FILE_NAME}/test.log"
+                     filePattern="${TEST_LOG_FILE_NAME}/info-%d{yyyy-MM-dd}-%i.log">
+            <PatternLayout pattern="[%d{HH:mm:ss:SSS}] [%p] - %l - %m%n" />
+            <Policies>
+                <TimeBasedTriggeringPolicy />
+                <SizeBasedTriggeringPolicy size="1024 MB" />
+            </Policies>
+        </RollingFile>
+    </Appenders>
 
-    </appenders>
+    <Loggers>
 
-    <loggers>
-         <AsyncLogger name="asynLogger" level="trace"
-            includeLocation="true">
-            <AppenderRef ref="RandomAccessFile" />
-        </AsyncLogger>
+
         <Root level="info" includeLocation="true">
             <AppenderRef ref="RollingFileInfo" />
             <AppenderRef ref="Console" />
-            <!--<AppenderRef ref="asynLogger" />-->
         </Root>
-    </loggers>
 
-</configuration>
+        <!--additivity="false" ：表示当前位置（com.yven.log.thread）任意level的日志都不会在父节点（Root）中输出-->
+        <Logger name="com.yven.log.thread" level="debug" additivity="false">
+            <Appender-ref ref="testLog" />
+        </Logger>
+
+    </Loggers>
+
+</Configuration>
