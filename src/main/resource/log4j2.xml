@@ -59,7 +59,7 @@
         </Root>
 
         <!--additivity="false" ：表示当前位置（com.yven.log.thread）任意level的日志都不会在父节点（Root）中输出-->
-        <Logger name="com.yven.log.thread" level="debug" additivity="false">
+        <Logger name="com.yven.log.thread" level="debug" additivity="true">
             <Appender-ref ref="testLog" />
         </Logger>
 
